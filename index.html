@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>링크 정리 툴</title>
+    <meta name="description" content="SNS 링크의 추적 파라미터를 제거하고 깔끔하게 정리해주는 도구">
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi66aw7YGs7KCVIOuPhCIsInNob3J0X25hbWUiOiLrp4Trgazsorog66asIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI2ZmZmZmZiIsInRoZW1lX2NvbG9yIjoiIzlmNjllYSJ9">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #faf5ff 0%, #eff6ff 50%, #fdf2f8 100%);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 42rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sparkle {
+            width: 2rem;
+            height: 2rem;
+            color: #a855f7;
+        }
+        
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #9333ea, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.75rem;
+        }
+        
+        .textarea-wrapper {
+            position: relative;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 8rem;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            resize: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+        }
+        
+        .paste-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.375rem 0.75rem;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .paste-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            flex: 1;
+            background: linear-gradient(to right, #a855f7, #3b82f6);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        
+        .btn-primary:disabled {
+            background: linear-gradient(to right, #d1d5db, #d1d5db);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        .result {
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(1rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-box {
+            position: relative;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid;
+        }
+        
+        .result-success {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+        
+        .result-error {
+            border-color: #fca5a5;
+            background: #fef2f2;
+        }
+        
+        .result-text {
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        
+        .result-success .result-text {
+            color: #1f2937;
+        }
+        
+        .result-error .result-text {
+            color: #dc2626;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid #86efac;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .copy-btn:hover {
+            background: #f9fafb;
+        }
+        
+        .copy-btn.copied {
+            border-color: #86efac;
+            color: #16a34a;
+        }
+        
+        .platforms {
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .platforms-title {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+        
+        .platforms-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .platform-tag {
+            padding: 0.25rem 0.75rem;
+            background: linear-gradient(to right, #f3e8ff, #dbeafe);
+            color: #7e22ce;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .tips {
+            margin-top: 1.5rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .tips-title {
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .tips-list {
+            list-style: none;
+        }
+        
+        .tips-list li {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .tips-list li span:first-child {
+            color: #a855f7;
+            margin-top: 0.125rem;
+        }
+        
+        .icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 1.875rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="header-title">
+                    <svg class="sparkle" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                    <h1>링크 정리 툴</h1>
+                </div>
+                <p class="subtitle">추적 파라미터 없이 깔끔한 링크를 만들어드려요</p>
+            </div>
+
+            <div class="input-group">
+                <label>링크를 붙여넣으세요</label>
+                <div class="textarea-wrapper">
+                    <textarea id="inputUrl" placeholder="https://www.instagram.com/p/xyz123/?utm_source=..."></textarea>
+                    <button class="paste-btn" onclick="pasteFromClipboard()">클립보드에서 붙여넣기</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" id="cleanBtn" onclick="cleanUrl()" disabled>
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                    </svg>
+                    깔끔하게 정리하기
+                </button>
+                <button class="btn btn-secondary" onclick="clearAll()">초기화</button>
+            </div>
+
+            <div id="result" style="display: none;"></div>
+
+            <div class="platforms">
+                <p class="platforms-title">지원하는 플랫폼</p>
+                <div class="platforms-list">
+                    <span class="platform-tag">Instagram</span>
+                    <span class="platform-tag">YouTube</span>
+                    <span class="platform-tag">Facebook</span>
+                    <span class="platform-tag">Twitter/X</span>
+                    <span class="platform-tag">TikTok</span>
+                    <span class="platform-tag">기타 링크</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tips">
+            <h3 class="tips-title">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                </svg>
+                사용 팁
+            </h3>
+            <ul class="tips-list">
+                <li>
+                    <span>•</span>
+                    <span>복사한 링크를 그대로 붙여넣으면 자동으로 정리돼요</span>
+                </li>
+                <li>
+                    <span>•</span>
+                    <span>? 뒤에 붙는 추적 코드와 공유 파라미터를 모두 제거합니다</span>
+                </li>
+                <li>
+                    <span>•</span>
+                    <span>깔끔한 링크는 클릭 한 번으로 바로 복사할 수 있어요</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const inputUrl = document.getElementById('inputUrl');
+        const cleanBtn = document.getElementById('cleanBtn');
+        const resultDiv = document.getElementById('result');
+
+        inputUrl.addEventListener('input', () => {
+            cleanBtn.disabled = !inputUrl.value.trim();
+        });
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputUrl.value = text;
+                cleanBtn.disabled = !text.trim();
+                cleanUrl();
+            } catch (err) {
+                alert('클립보드 접근 권한이 필요합니다.');
+            }
+        }
+
+        function cleanUrl() {
+            const url = inputUrl.value.trim();
+            if (!url) return;
+
+            try {
+                const urlObj = new URL(url);
+                let cleaned = '';
+
+                if (urlObj.hostname.includes('instagram.com')) {
+                    cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                } else if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+                    if (urlObj.hostname.includes('youtu.be')) {
+                        cleaned = `https://youtu.be${urlObj.pathname}`;
+                    } else {
+                        const videoId = urlObj.searchParams.get('v');
+                        if (videoId) {
+                            cleaned = `https://www.youtube.com/watch?v=${videoId}`;
+                        } else {
+                            cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                        }
+                    }
+                } else if (urlObj.hostname.includes('facebook.com') || urlObj.hostname.includes('fb.com')) {
+                    cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                } else if (urlObj.hostname.includes('twitter.com') || urlObj.hostname.includes('x.com')) {
+                    cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                } else if (urlObj.hostname.includes('tiktok.com')) {
+                    cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                } else {
+                    cleaned = `${urlObj.protocol}//${urlObj.hostname}${urlObj.pathname}`;
+                }
+
+                showResult(cleaned, true);
+            } catch (e) {
+                showResult('올바른 URL을 입력해주세요', false);
+            }
+        }
+
+        function showResult(url, isSuccess) {
+            const resultClass = isSuccess ? 'result-success' : 'result-error';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            if (isSuccess) {
+                resultDiv.innerHTML = `
+                    <label>정리된 링크</label>
+                    <div class="result-box ${resultClass}">
+                        <p class="result-text">${url}</p>
+                        <button class="copy-btn" onclick="copyToClipboard('${url}', this)">
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>복사하기</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <label>정리된 링크</label>
+                    <div class="result-box ${resultClass}">
+                        <p class="result-text">${url}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function copyToClipboard(text, btn) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalHTML = btn.innerHTML;
+                btn.classList.add('copied');
+                btn.innerHTML = `
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>복사완료!</span>
+                `;
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = originalHTML;
+                }, 2000);
+            } catch (err) {
+                alert('복사에 실패했습니다.');
+            }
+        }
+
+        function clearAll() {
+            inputUrl.value = '';
+            resultDiv.style.display = 'none';
+            cleanBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
